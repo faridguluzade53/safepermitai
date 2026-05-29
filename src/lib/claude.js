@@ -7,10 +7,10 @@ const client = new Anthropic({
 })
 
 export const DOCUMENT_LABELS = {
-  near_miss: 'Yaxın-Qaçış Hesabatı',
-  toolbox_talk: 'Brifınq Qeydi',
-  incident_report: 'Hadisə Hesabatı',
-  permit_to_work: 'İş İcazəsi',
+  near_miss: 'Tikinti Yaxın-Qaçış Hesabatı',
+  toolbox_talk: 'Tikinti Brifinq Qeydi',
+  incident_report: 'Tikinti Hadisə Hesabatı',
+  permit_to_work: 'Tikinti İş İcazəsi',
 }
 
 // Token budgets per document type — PTW has 10 dense sections including
@@ -47,7 +47,7 @@ export async function generateDocument(inputText, documentType) {
     system: systemPrompt,
     messages: [{
       role: 'user',
-      content: `Aşağıdakı sahə hadisəsinin təsviri əsasında formal sənəd hazırlayın:\n\n${inputText}`,
+      content: `Aşağıdakı tikinti sahəsi təsviri əsasında yoxlanılmalı ilkin sənəd layihəsi hazırlayın:\n\n${inputText}`,
     }],
   })
 
@@ -58,7 +58,7 @@ export async function generateDocument(inputText, documentType) {
   const actual = countSectionHeaders(output)
   if (expected > 0 && actual < expected) {
     throw new Error(
-      `Sənəd yarımçıq yaradıldı (${actual}/${expected} bölmə). ` +
+      `Sənəd layihəsi yarımçıq yaradıldı (${actual}/${expected} bölmə). ` +
       `Zəhmət olmasa yenidən cəhd edin.`
     )
   }

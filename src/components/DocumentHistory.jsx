@@ -117,9 +117,9 @@ export default function DocumentHistory({ userId, refreshKey }) {
     <div className="bg-white rounded-2xl border border-gray-200 shadow-sm">
       <div className="flex items-center gap-2 px-6 py-4 border-b border-gray-100">
         <Clock className="w-4 h-4 text-gray-500" />
-        <h2 className="text-base font-semibold text-gray-900">Sənəd Tarixi</h2>
+        <h2 className="text-base font-semibold text-gray-900">Sənəd Layihələri Tarixi</h2>
         {documents.length > 0 && (
-          <span className="ml-auto text-xs text-gray-400">{documents.length} sənəd</span>
+          <span className="ml-auto text-xs text-gray-400">{documents.length} sənəd layihəsi</span>
         )}
       </div>
 
@@ -134,8 +134,8 @@ export default function DocumentHistory({ userId, refreshKey }) {
         ) : documents.length === 0 ? (
           <div className="text-center py-12">
             <FileText className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-            <p className="text-sm text-gray-400">Hələ heç bir sənəd yaradılmayıb</p>
-            <p className="text-xs text-gray-300 mt-1">Yeni sənəd yaratmaq üçün yuxarıdakı formu doldurun</p>
+            <p className="text-sm text-gray-400">Hələ heç bir sənəd layihəsi yaradılmayıb</p>
+            <p className="text-xs text-gray-300 mt-1">Yeni sənəd layihəsi yaratmaq üçün yuxarıdakı formu doldurun</p>
           </div>
         ) : (
           <div className="space-y-2">

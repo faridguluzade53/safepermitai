@@ -6,27 +6,32 @@ import { generatePdfFromText } from '../lib/pdfUtils'
 import DocumentPreview from './DocumentPreview'
 
 const DOCUMENT_TYPES = [
-  { value: 'near_miss', label: 'Yaxın-Qaçış Hesabatı' },
-  { value: 'toolbox_talk', label: 'Brifınq Qeydi' },
-  { value: 'incident_report', label: 'Hadisə Hesabatı' },
-  { value: 'permit_to_work', label: 'İş İcazəsi' },
+  { value: 'near_miss', label: 'Tikinti Yaxın-Qaçış Hesabatı' },
+  { value: 'toolbox_talk', label: 'Tikinti Brifinq Qeydi' },
+  { value: 'incident_report', label: 'Tikinti Hadisə Hesabatı' },
+  { value: 'permit_to_work', label: 'Tikinti İş İcazəsi' },
 ]
 
 const DEMO_SCENARIOS = [
   {
-    label: 'Yaxın-qaçış: Elektrik',
+    label: 'Yaxın-qaçış: İskele',
     type: 'near_miss',
-    text: 'Bu gün səhər saat 9:30-da Sumqayıt sahəsində 3-cü blokda bir işçi açıq elektrik kabelinin yanında qoruyucu olmadan işləyirdi. Kabel zədələnmişdi, mis hissə görünürdü. Yaxın iş yoldaşı görüb dərhal işi dayandırdı. Yaralanma yoxdur amma elektrik şoku təhlükəsi vardı. Sahədə xəbərdarlıq lentəsi və ya işarəsi qoyulmamışdı.',
+    text: 'Bu səhər saat 09:00-da 4-cü mərtəbədə işçi qoruyucu kəmər bağlamadan iskeleyə çıxmaq istəyirdi. SƏTƏM məsulu bunu görüb işi dayandırdı. Yaralanma olmadı.',
   },
   {
-    label: 'İş icazəsi: Qapalı məkan',
-    type: 'permit_to_work',
-    text: 'Sabah səhər saat 8:00-dan axşam 17:00-a kimi Bakıdakı emaledici zavodun 2-ci tank sahəsində tank təmizliyi işi aparılacaq. 4 nəfər işçi cəlb olunacaq, məsul şəxs sahə rəhbəridir. Tank əvvəlcədən boşaldılıb, lakin qalıq buxar ehtimalı var. Oksigen ölçən cihaz, məcburi ventilyasiya, təhlükəsizlik kəməri və xaricdə gözləyən xilasetmə komandası tələb olunur.',
-  },
-  {
-    label: 'Hadisə: Sürüşmə',
+    label: 'Hadisə: Betonlama',
     type: 'incident_report',
-    text: 'Dünən saat 14:20-də 4-cü sahədə bir işçi nəm betona ayaq qoyub sürüşdü və sol ayağını incitdi. Hadisə yerində su sızması var idi, lakin xəbərdarlıq işarəsi qoyulmamışdı. İşçi xəstəxanaya aparıldı, ayaqda yumşaq toxuma zədəsi diaqnozu qoyuldu, 3 gün iş itkisi gözlənilir. Sahə təmizlik briqadası vaxtında məlumatlandırılmamışdı.',
+    text: 'Tikinti sahəsində betonlama zamanı işçi sürüşərək yıxıldı və sağ biləyində ağrı yarandı. İlk yardım göstərildi, iş müvəqqəti dayandırıldı.',
+  },
+  {
+    label: 'Brifinq: Hündürlük',
+    type: 'toolbox_talk',
+    text: 'Bu gün səhər brifinqində hündürlükdə iş, iskele təhlükəsizliyi və qoruyucu kəmərin düzgün istifadəsi barədə işçilərə məlumat verilməlidir.',
+  },
+  {
+    label: 'İş icazəsi: Hündürlük',
+    type: 'permit_to_work',
+    text: '5-ci mərtəbədə fasad işləri üçün iskele üzərində hündürlükdə iş aparılacaq. 6 işçi iştirak edəcək, qoruyucu kəmər, kaska, əlcək və təhlükəsizlik ayaqqabısı tələb olunur.',
   },
 ]
 
@@ -70,7 +75,7 @@ export default function DocumentGenerator({ userId, onDocumentSaved }) {
       if (saveError) console.error('Save error:', saveError)
       else if (onDocumentSaved) onDocumentSaved()
     } catch (err) {
-      setError(err.message || 'Sənəd yaradılarkən xəta baş verdi.')
+      setError(err.message || 'Sənəd layihəsi yaradılarkən xəta baş verdi.')
     } finally {
       setLoading(false)
     }
@@ -96,14 +101,14 @@ export default function DocumentGenerator({ userId, onDocumentSaved }) {
       <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
         <div className="flex items-center gap-2 mb-5">
           <Sparkles className="w-5 h-5 text-blue-600" />
-          <h2 className="text-base font-semibold text-gray-900">Yeni SƏTƏM Sənədi Yarat</h2>
+          <h2 className="text-base font-semibold text-gray-900">Yeni SƏTƏM Sənəd Layihəsi</h2>
         </div>
 
         <div className="space-y-4">
           {/* Document type */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">
-              Sənəd Növü
+              Sənəd layihəsinin növü
             </label>
             <div className="relative">
               <select
@@ -138,12 +143,12 @@ export default function DocumentGenerator({ userId, onDocumentSaved }) {
           {/* Textarea */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">
-              Hadisənin Təsviri
+              Tikinti sahəsi təsviri
             </label>
             <textarea
               value={inputText}
               onChange={e => setInputText(e.target.value)}
-              placeholder="Hadisəni Azərbaycan dilində sadə şəkildə təsvir edin..."
+              placeholder="Tikinti işi, hadisə və ya təhlükəni Azərbaycan dilində sadə şəkildə təsvir edin..."
               rows={5}
               className="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition resize-none"
             />
@@ -163,12 +168,12 @@ export default function DocumentGenerator({ userId, onDocumentSaved }) {
             {loading ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                Sənəd hazırlanır...
+                Sənəd layihəsi hazırlanır...
               </>
             ) : (
               <>
                 <Sparkles className="w-4 h-4" />
-                Sənəd Yarat
+                Sənəd Layihəsi Yarat
               </>
             )}
           </button>

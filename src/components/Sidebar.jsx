@@ -8,7 +8,7 @@ export default function Sidebar({ currentPage, onNavigate, userEmail }) {
 
   const navItems = [
     { id: 'dashboard', label: 'İdarə Paneli', icon: LayoutDashboard },
-    { id: 'history', label: 'Sənəd Tarixi', icon: Clock },
+    { id: 'history', label: 'Layihə Tarixi', icon: Clock },
   ]
 
   return (
@@ -21,7 +21,7 @@ export default function Sidebar({ currentPage, onNavigate, userEmail }) {
           </div>
           <div>
             <p className="text-white font-semibold text-sm leading-tight">SafePermit AI</p>
-            <p className="text-gray-500 text-xs">SƏTƏM Sistemi</p>
+            <p className="text-gray-500 text-xs">Sənəd Layihələri</p>
           </div>
         </div>
       </div>

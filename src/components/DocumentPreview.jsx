@@ -1,11 +1,13 @@
 import { DOCUMENT_LABELS } from '../lib/claude'
 
 const DOC_TITLES = {
-  incident_report: 'HADİSƏ HESABATI',
-  near_miss: 'YAXIN-QAÇIŞ HESABATI',
-  toolbox_talk: 'BRİFİNQ QEYDİ',
-  permit_to_work: 'İŞ İCAZƏSİ',
+  incident_report: 'TİKİNTİ HADİSƏ HESABATI',
+  near_miss: 'TİKİNTİ YAXIN-QAÇIŞ HESABATI',
+  toolbox_talk: 'TİKİNTİ BRİFİNQ QEYDİ',
+  permit_to_work: 'TİKİNTİ İŞ İCAZƏSİ',
 }
+
+const DRAFT_DISCLAIMER = 'Bu sənəd AI tərəfindən hazırlanmış ilkin sənəd layihəsidir. Rəsmi istifadə üçün məsul SƏTƏM mütəxəssisi tərəfindən yoxlanılmalı, düzəliş edilməli və imzalanmalıdır.'
 
 // Detects a numbered section header: "1. SECTION TITLE" where title starts uppercase
 const SECTION_RE = /^(\d+)\.\s+([A-ZƏŞÇĞİÖÜ].{2,})$/
@@ -39,11 +41,11 @@ function renderContentLine(line, index) {
   }
 
   // Bullet: starts with • or - followed by space
-  if (/^[•\-]\s/.test(trimmed)) {
+  if (/^[•-]\s/.test(trimmed)) {
     return (
       <div key={index} style={{ display: 'flex', gap: '8px', marginBottom: '3px', paddingLeft: '4px' }}>
         <span style={{ flexShrink: 0, color: '#374151' }}>•</span>
-        <span>{trimmed.replace(/^[•\-]\s+/, '')}</span>
+        <span>{trimmed.replace(/^[•-]\s+/, '')}</span>
       </div>
     )
   }
@@ -155,16 +157,30 @@ export default function DocumentPreview({ text, documentType }) {
             {docTitle}
           </div>
           <div style={{ fontSize: '10px', color: '#6b7280', marginTop: '2px' }}>
-            SƏTƏM Sənədi
+            SƏTƏM Sənəd Layihəsi
           </div>
         </div>
 
         <div style={{ textAlign: 'right', fontSize: '11px', color: '#6b7280' }}>
           <div>{today}</div>
           <div style={{ color: '#9ca3af', fontSize: '10px', marginTop: '2px' }}>
-            Yaradılma tarixi
+            Layihənin hazırlanma tarixi
           </div>
         </div>
+      </div>
+
+      <div style={{
+        border: '1px solid #f59e0b',
+        background: '#fffbeb',
+        color: '#92400e',
+        padding: '9px 11px',
+        borderRadius: '6px',
+        marginBottom: '18px',
+        fontSize: '11px',
+        lineHeight: '1.45',
+        fontWeight: '500',
+      }}>
+        {DRAFT_DISCLAIMER}
       </div>
 
       {/* Sections */}
@@ -226,7 +242,7 @@ export default function DocumentPreview({ text, documentType }) {
         fontSize: '9px',
         color: '#9ca3af',
       }}>
-        <span>SafePermit AI tərəfindən yaradılıb</span>
+        <span>SafePermit AI tərəfindən ilkin layihə kimi hazırlanıb</span>
         <span>{today}</span>
       </div>
     </div>

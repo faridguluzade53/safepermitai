@@ -25,12 +25,12 @@ export default function Dashboard({ session }) {
           {/* Page header */}
           <div className="mb-8">
             <h1 className="text-2xl font-bold text-gray-900">
-              {page === 'dashboard' ? 'İdarə Paneli' : 'Sənəd Tarixi'}
+              {page === 'dashboard' ? 'İdarə Paneli' : 'Sənəd Layihələri Tarixi'}
             </h1>
             <p className="text-sm text-gray-500 mt-1">
               {page === 'dashboard'
-                ? 'Yeni SƏTƏM sənədləri yaradın və ya keçmiş sənədlərə baxın'
-                : 'Bütün yaradılmış SƏTƏM sənədlərinin siyahısı'}
+                ? 'Tikinti üzrə yoxlanılmalı SƏTƏM sənəd layihələri hazırlayın və ya keçmiş layihələrə baxın'
+                : 'Bütün hazırlanmış SƏTƏM sənəd layihələrinin siyahısı'}
             </p>
           </div>
 
