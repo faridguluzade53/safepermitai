@@ -29,7 +29,7 @@ export default function Dashboard({ session }) {
             </h1>
             <p className="text-sm text-gray-500 mt-1">
               {page === 'dashboard'
-                ? 'Tikinti üzrə yoxlanılmalı SƏTƏM sənəd layihələri hazırlayın və ya keçmiş layihələrə baxın'
+                ? 'Müəssisəniz üçün yoxlanılmalı SƏTƏM sənəd layihələri hazırlayın və ya keçmiş layihələrə baxın'
                 : 'Bütün hazırlanmış SƏTƏM sənəd layihələrinin siyahısı'}
             </p>
           </div>

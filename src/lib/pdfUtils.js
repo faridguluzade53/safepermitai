@@ -9,10 +9,10 @@ import notoSansRegularUrl from 'notosans-fontface/fonts/NotoSans-Regular.ttf?url
 import notoSansBoldUrl from 'notosans-fontface/fonts/NotoSans-Bold.ttf?url'
 
 const DOC_TITLES = {
-  incident_report: 'TİKİNTİ HADİSƏ HESABATI',
-  near_miss: 'TİKİNTİ YAXIN-QAÇIŞ HESABATI',
-  toolbox_talk: 'TİKİNTİ BRİFİNQ QEYDİ',
-  permit_to_work: 'TİKİNTİ İŞ İCAZƏSİ',
+  incident_report: 'HADİSƏ HESABATI',
+  near_miss: 'YAXIN-QAÇIŞ HESABATI',
+  toolbox_talk: 'BRİFİNQ QEYDİ',
+  permit_to_work: 'İŞ İCAZƏSİ',
 }
 
 const DRAFT_DISCLAIMER = 'Bu sənəd AI tərəfindən hazırlanmış ilkin sənəd layihəsidir. Rəsmi istifadə üçün məsul SƏTƏM mütəxəssisi tərəfindən yoxlanılmalı, düzəliş edilməli və imzalanmalıdır.'
@@ -452,6 +452,263 @@ async function exportDocumentAsTextPdf(text, docType) {
 
   drawFooter()
   pdf.save(`${docType}_${Date.now()}.pdf`)
+}
+
+function getRiskColor(riskLevel) {
+  const level = String(riskLevel).toLowerCase()
+  if (level === 'critical') return { fill: [254, 226, 226], text: [153, 27, 27] }
+  if (level === 'high') return { fill: [254, 215, 170], text: [154, 52, 18] }
+  if (level === 'medium') return { fill: [254, 243, 199], text: [146, 64, 14] }
+  return { fill: [209, 250, 229], text: [6, 95, 70] }
+}
+
+export async function generateRiskAssessmentPdf(data) {
+  const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' })
+  await registerFonts(pdf)
+
+  const pageW = pdf.internal.pageSize.getWidth()   // 297
+  const pageH = pdf.internal.pageSize.getHeight()  // 210
+  const mX = 12
+  const mTop = 12
+  const mBottom = 12
+  const footerY = pageH - 8
+  const contentBottom = pageH - mBottom
+  const cW = pageW - 2 * mX   // 273
+  const today = formatToday()
+  let y = mTop
+
+  function newPage() {
+    pdf.addPage()
+    y = mTop
+  }
+
+  function ensureSpace(h) {
+    if (y + h > contentBottom) newPage()
+  }
+
+  // ── Header ──────────────────────────────────────────────────────────────
+  pdf.setDrawColor(30, 58, 95)
+  pdf.setLineWidth(0.6)
+  pdf.line(mX, y + 18, pageW - mX, y + 18)
+
+  setTextStyle(pdf, { size: 10, style: 'bold', color: [30, 58, 95] })
+  pdf.text('SafePermit AI', pageW / 2, y + 4, { align: 'center' })
+  setTextStyle(pdf, { size: 13, style: 'bold', color: [17, 24, 39] })
+  pdf.text('RİSK QİYMƏTLƏNDİRMƏSİ', pageW / 2, y + 10, { align: 'center' })
+  setTextStyle(pdf, { size: 8, color: [107, 114, 128] })
+  pdf.text('SƏTƏM Sənəd Layihəsi', pageW / 2, y + 15, { align: 'center' })
+  setTextStyle(pdf, { size: 8, color: [107, 114, 128] })
+  pdf.text(today, pageW - mX, y + 4, { align: 'right' })
+  y += 26
+
+  // ── Disclaimer ──────────────────────────────────────────────────────────
+  const disclaimer = DRAFT_DISCLAIMER
+  const discPad = 3
+  const discFs = 8.5
+  const discTextW = cW - discPad * 2
+  const discH = estimateWrappedHeight(pdf, disclaimer, discTextW, discFs, 1.35) + discPad * 2
+  pdf.setFillColor(255, 251, 235)
+  pdf.setDrawColor(245, 158, 11)
+  pdf.roundedRect(mX, y, cW, discH, 1.5, 1.5, 'FD')
+  setTextStyle(pdf, { size: discFs, color: [146, 64, 14] })
+  drawWrappedText(pdf, disclaimer, mX + discPad, y + discPad + 2.2, discTextW, discFs, 1.35)
+  y += discH + 6
+
+  // ── Work details ────────────────────────────────────────────────────────
+  const wd = data.workDetails || {}
+  const details = [
+    ['İş təsviri', wd.description || wd.workDescription || ''],
+    ['Yer', wd.location || ''],
+    ['Tarix', wd.date || ''],
+    ['Məsul şəxs', wd.responsiblePerson || ''],
+    ['İşçi sayı', String(wd.workerCount ?? '')],
+  ]
+
+  ensureSpace(10)
+  setTextStyle(pdf, { size: 10, style: 'bold', color: [30, 58, 95] })
+  pdf.text('1. İŞ TƏFƏRRÜATLARI', mX, y)
+  pdf.setDrawColor(209, 213, 219)
+  pdf.setLineWidth(0.25)
+  pdf.line(mX, y + 1.5, pageW - mX, y + 1.5)
+  y += 6
+
+  const labelColW = 48
+  const valueColX = mX + labelColW + 3
+  const valueColW = cW - labelColW - 3
+  for (const [label, value] of details) {
+    const fs = 9
+    const h = Math.max(lineHeight(fs, 1.35), estimateWrappedHeight(pdf, value, valueColW, fs, 1.35)) + 1.2
+    ensureSpace(h)
+    setTextStyle(pdf, { size: fs, style: 'bold', color: [55, 65, 81] })
+    pdf.text(`${label}:`, mX, y)
+    setTextStyle(pdf, { size: fs, color: [17, 24, 39] })
+    drawWrappedText(pdf, value, valueColX, y, valueColW, fs, 1.35)
+    y += h
+  }
+  y += 6
+
+  // ── Hazard table ────────────────────────────────────────────────────────
+  ensureSpace(10)
+  setTextStyle(pdf, { size: 10, style: 'bold', color: [30, 58, 95] })
+  pdf.text('2. TƏHLÜKƏLƏRİN MÜƏYYƏNLƏŞDİRİLMƏSİ', mX, y)
+  pdf.setDrawColor(209, 213, 219)
+  pdf.setLineWidth(0.25)
+  pdf.line(mX, y + 1.5, pageW - mX, y + 1.5)
+  y += 7
+
+  const tCols = [
+    { label: 'Təhlükə', key: 'hazard', w: 42 },
+    { label: 'Təsirlənənlər', key: 'affectedPersons', w: 34 },
+    { label: 'Ehtimal\n(1-5)', key: 'likelihood', w: 18 },
+    { label: 'Ağırlıq\n(1-5)', key: 'severity', w: 18 },
+    { label: 'Risk\nbal', key: 'riskScore', w: 18 },
+    { label: 'Risk\nSəviyyəsi', key: 'riskLevel', w: 24 },
+    { label: 'Nəzarət Tədbirləri', key: 'controlMeasures', w: 119 },
+  ]
+  const tCellPadX = 2
+  const tCellPadY = 2
+  const headerFs = 8
+  const cellFs = 8
+  const headerRowH = 12
+
+  // Draw header
+  ensureSpace(headerRowH + 2)
+  let colX = mX
+  for (const col of tCols) {
+    pdf.setFillColor(30, 58, 95)
+    pdf.rect(colX, y, col.w, headerRowH, 'F')
+    setTextStyle(pdf, { size: headerFs, style: 'bold', color: [255, 255, 255] })
+    const labelLines = col.label.split('\n')
+    const lineH = lineHeight(headerFs, 1.3)
+    const totalTextH = labelLines.length * lineH
+    const startY = y + (headerRowH - totalTextH) / 2 + headerFs * 0.352778
+    labelLines.forEach((line, li) => {
+      pdf.text(line, colX + col.w / 2, startY + li * lineH, { align: 'center' })
+    })
+    colX += col.w
+  }
+  y += headerRowH
+
+  // Draw hazard rows
+  const hazards = Array.isArray(data.hazards) ? data.hazards : []
+  for (let ri = 0; ri < hazards.length; ri++) {
+    const h = hazards[ri]
+    const rowBg = ri % 2 === 0 ? [255, 255, 255] : [249, 250, 251]
+
+    // Compute row height: wrap text in each cell, find max lines
+    const cellTexts = tCols.map(col => {
+      const val = h[col.key]
+      return val !== undefined && val !== null ? String(val) : ''
+    })
+    const cellHeights = tCols.map((col, ci) => {
+      const textW = col.w - tCellPadX * 2
+      return estimateWrappedHeight(pdf, cellTexts[ci], textW, cellFs, 1.35) + tCellPadY * 2
+    })
+    const rowH = Math.max(...cellHeights, 8)
+
+    ensureSpace(rowH)
+
+    colX = mX
+    for (let ci = 0; ci < tCols.length; ci++) {
+      const col = tCols[ci]
+      const isRiskLevel = col.key === 'riskLevel'
+      if (isRiskLevel) {
+        const { fill } = getRiskColor(cellTexts[ci])
+        pdf.setFillColor(...fill)
+      } else {
+        pdf.setFillColor(...rowBg)
+      }
+      pdf.setDrawColor(209, 213, 219)
+      pdf.setLineWidth(0.2)
+      pdf.rect(colX, y, col.w, rowH, 'FD')
+
+      const textColor = isRiskLevel ? getRiskColor(cellTexts[ci]).text : [31, 41, 55]
+      setTextStyle(pdf, { size: cellFs, color: textColor, style: isRiskLevel ? 'bold' : 'normal' })
+      const textW = col.w - tCellPadX * 2
+      const lines = splitText(pdf, cellTexts[ci], textW)
+      const lh = lineHeight(cellFs, 1.35)
+      const totalTH = lines.length * lh
+      const startTextY = y + (rowH - totalTH) / 2 + cellFs * 0.352778
+      lines.forEach((line, li) => {
+        pdf.text(line, colX + tCellPadX, startTextY + li * lh)
+      })
+
+      colX += col.w
+    }
+    y += rowH
+  }
+  y += 8
+
+  // ── Overall risk level ──────────────────────────────────────────────────
+  ensureSpace(24)
+  setTextStyle(pdf, { size: 10, style: 'bold', color: [30, 58, 95] })
+  pdf.text('3. ÜMUMİ RİSK SƏVİYYƏSİ', mX, y)
+  pdf.setDrawColor(209, 213, 219)
+  pdf.setLineWidth(0.25)
+  pdf.line(mX, y + 1.5, pageW - mX, y + 1.5)
+  y += 6
+
+  const overallLevel = String(data.overallRiskLevel || '')
+  const { fill: ovFill, text: ovText } = getRiskColor(overallLevel)
+  const badgeW = 38
+  const badgeH = 8
+  pdf.setFillColor(...ovFill)
+  pdf.setDrawColor(...ovText)
+  pdf.roundedRect(mX, y - 1, badgeW, badgeH, 2, 2, 'FD')
+  setTextStyle(pdf, { size: 9.5, style: 'bold', color: ovText })
+  pdf.text(overallLevel, mX + badgeW / 2, y + 4, { align: 'center' })
+  y += badgeH + 3
+
+  if (data.summary) {
+    const sumFs = 9
+    const sumH = estimateWrappedHeight(pdf, data.summary, cW, sumFs, 1.45) + 1.4
+    ensureSpace(sumH)
+    setTextStyle(pdf, { size: sumFs, color: [31, 41, 55] })
+    y = drawWrappedText(pdf, data.summary, mX, y, cW, sumFs, 1.45) + 1.4
+  }
+  y += 6
+
+  // ── Sign-off ────────────────────────────────────────────────────────────
+  ensureSpace(36)
+  setTextStyle(pdf, { size: 10, style: 'bold', color: [30, 58, 95] })
+  pdf.text('4. İMZALAR', mX, y)
+  pdf.setDrawColor(209, 213, 219)
+  pdf.setLineWidth(0.25)
+  pdf.line(mX, y + 1.5, pageW - mX, y + 1.5)
+  y += 7
+
+  const signOffs = [
+    ['Məsul şəxs', wd.responsiblePerson || '[Ad Soyad daxil edilməlidir]'],
+    ['SƏTƏM məsulu', '[Ad Soyad daxil edilməlidir]'],
+    ['Layihə meneceri', '[Ad Soyad daxil edilməlidir]'],
+  ]
+  const sigColW = cW / 3
+  signOffs.forEach(([role, name], i) => {
+    const sx = mX + i * sigColW
+    setTextStyle(pdf, { size: 8.5, style: 'bold', color: [55, 65, 81] })
+    pdf.text(role, sx, y)
+    setTextStyle(pdf, { size: 8, color: [107, 114, 128] })
+    pdf.text(name, sx, y + 4.5)
+    pdf.setDrawColor(156, 163, 175)
+    pdf.setLineWidth(0.3)
+    pdf.line(sx, y + 12, sx + sigColW - 8, y + 12)
+    setTextStyle(pdf, { size: 7.5, color: [156, 163, 175] })
+    pdf.text('İmza', sx, y + 15)
+    pdf.text('Tarix: ____________', sx + sigColW / 2, y + 15)
+  })
+
+  // ── Footer on all pages ─────────────────────────────────────────────────
+  const pageCount = pdf.getNumberOfPages()
+  for (let p = 1; p <= pageCount; p++) {
+    pdf.setPage(p)
+    pdf.setDrawColor(229, 231, 235)
+    pdf.line(mX, footerY - 3, pageW - mX, footerY - 3)
+    setTextStyle(pdf, { size: 7, color: [156, 163, 175] })
+    pdf.text('SafePermit AI tərəfindən ilkin layihə kimi hazırlanıb', mX, footerY)
+    pdf.text(`${p} / ${pageCount}`, pageW - mX, footerY, { align: 'right' })
+  }
+
+  pdf.save(`risk_assessment_${Date.now()}.pdf`)
 }
 
 export async function generatePdfFromText(text, docType) {

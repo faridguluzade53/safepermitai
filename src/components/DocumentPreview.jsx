@@ -1,10 +1,10 @@
 import { DOCUMENT_LABELS } from '../lib/claude'
 
 const DOC_TITLES = {
-  incident_report: 'TİKİNTİ HADİSƏ HESABATI',
-  near_miss: 'TİKİNTİ YAXIN-QAÇIŞ HESABATI',
-  toolbox_talk: 'TİKİNTİ BRİFİNQ QEYDİ',
-  permit_to_work: 'TİKİNTİ İŞ İCAZƏSİ',
+  incident_report: 'HADİSƏ HESABATI',
+  near_miss: 'YAXIN-QAÇIŞ HESABATI',
+  toolbox_talk: 'BRİFİNQ QEYDİ',
+  permit_to_work: 'İŞ İCAZƏSİ',
 }
 
 const DRAFT_DISCLAIMER = 'Bu sənəd AI tərəfindən hazırlanmış ilkin sənəd layihəsidir. Rəsmi istifadə üçün məsul SƏTƏM mütəxəssisi tərəfindən yoxlanılmalı, düzəliş edilməli və imzalanmalıdır.'
